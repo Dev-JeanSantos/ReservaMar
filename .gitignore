@@ -1,0 +1,41 @@
+# ---- Build outputs ----
+build/
+out/
+target/
+*.class
+*.jar
+*.war
+
+# ---- Gradle ----
+.gradle/
+gradle-app.setting
+!gradle/wrapper/gradle-wrapper.jar
+
+# ---- Node / Frontend ----
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+
+# ---- IDE ----
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Env / secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Docker ----
+docker-compose.override.yml
