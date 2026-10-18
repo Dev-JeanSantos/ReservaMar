@@ -1,44 +1,38 @@
 # =============================================================
 # ReservaMar — monorepo .gitignore
-# backend/ (Kotlin + Spring Boot + Gradle)
-# frontend/ (React + TypeScript + Vite)
+# apps/api  (Kotlin + Spring Boot + Gradle)
+# apps/web  (React + TypeScript + Vite)
 # =============================================================
 
 # ---- Backend: Gradle ----
-backend/.gradle/
-backend/build/
-backend/out/
-backend/*.jar
-backend/*.war
-backend/gradle-app.setting
-!backend/gradle/wrapper/gradle-wrapper.jar
+apps/api/.gradle/
+apps/api/build/
+apps/api/out/
+apps/api/*.jar
+apps/api/*.war
+apps/api/gradle-app.setting
+!apps/api/gradle/wrapper/gradle-wrapper.jar
 
-# ---- Backend: IntelliJ / IDE ----
-backend/.idea/
-backend/*.iml
-backend/.idea_modules/
+# ---- Backend: configuração local (segredos) ----
+apps/api/src/main/resources/application-local.yml
+apps/api/src/main/resources/application-local.properties
 
-# ---- Backend: Spring Boot ----
-backend/src/main/resources/application-local.yml
-backend/src/main/resources/application-local.properties
+# ---- Backend: IDE ----
+apps/api/.idea/
+apps/api/*.iml
 
 # ---- Frontend: Node ----
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-frontend/*.tsbuildinfo
-frontend/.env
-frontend/.env.*
-!frontend/.env.example
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.vite/
+apps/web/*.tsbuildinfo
 
-# ---- Frontend: Build cache ----
-frontend/.cache/
-frontend/.turbo/
+# ---- Frontend: tipos gerados (rebuildar com npm run generate:types) ----
+apps/web/src/shared/api/types.generated.ts
 
-# ---- Env / secrets (raiz) ----
-.env
-.env.*
-!.env.example
+# ---- Frontend: env local ----
+apps/web/.env.local
+apps/web/.env.*.local
 
 # ---- IDE (raiz) ----
 .idea/
@@ -55,6 +49,14 @@ desktop.ini
 # ---- Logs ----
 *.log
 logs/
+
+# ---- Env / segredos (raiz) ----
+.env
+.env.*
+!.env.example
+!apps/api/.env.example
+!apps/web/.env.example
+!infra/compose/.env.example
 
 # ---- Docker ----
 docker-compose.override.yml

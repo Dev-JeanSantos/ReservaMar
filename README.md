@@ -1,38 +1,111 @@
-# ReservaMar — Kit de fundação para Kiro
+# ReservaMar
 
-> **Estado:** documentação primária de produto e arquitetura (18/10/2026). **Não é um aplicativo implementado.** Nome comercial provisório e hipóteses de mercado pendentes de validação.
+> Micro-SaaS B2B para operadores brasileiros de pescarias embarcadas compartilhadas.
+> **Estado:** bootstrap em andamento — MVP em desenvolvimento.
 
-## Objetivo
-Micro-SaaS B2B, multiempresa, para operadores brasileiros de **pescarias embarcadas compartilhadas**. Operadores gerenciam barcos, saídas, vagas, reservas, sinais Pix **manualmente conciliados** e conversas abertas pelo WhatsApp. O MVP **não** oferece checkout, marketplace, confirmação automática de Pix, integração ativa com a Meta nem autoatendimento do turista.
+## Estrutura do monorepo
 
-## Leitura na ordem correta
-1. `docs/START-IN-KIRO.md`: primeira conversa e ritual de aprovação no Kiro.
-2. `.kiro/steering/`: decisões permanentes que orientam todas as mudanças.
-3. `docs/adr/`: decisões e justificativas arquiteturais.
-4. `docs/domain/`: modelo, invariantes, estados e casos extremos.
-5. `docs/architecture/` + `docs/api/`: fronteiras e contratos.
-6. `docs/design/`: design system, telas e fluxo para desktop/celular.
-7. `docs/spec-seeds/`: insumos independentes para geração de Feature Specs no Kiro.
-8. `.kiro/specs/01-foundation-bootstrap/requirements.md`: exemplo de requisitos EARS já estruturado para a primeira spec; **peça ao Kiro gerar/revisar design.md e tasks.md** com gates humanos.
-9. `docs/quality/definition-of-done.md`: checklist de revisão por feature.
+```
+ReservaMar/
+├── apps/
+│   ├── api/          # Backend: Kotlin + Spring Boot 4.1.1 + PostgreSQL
+│   └── web/          # Frontend: React 19 + TypeScript + Vite
+├── infra/
+│   ├── compose/      # Docker Compose local (PostgreSQL 17)
+│   └── proxy/        # Configuração de proxy (definição futura)
+├── .github/
+│   └── workflows/    # CI: api-ci.yml e web-ci.yml
+├── docs/             # ADRs, domínio, design, spec-seeds, qualidade
+├── scripts/          # Scripts utilitários
+└── .kiro/            # Steering, specs e hooks do Kiro IDE
+```
 
-## Como usar
-Extraia todo o conteúdo **na raiz do repositório** aberto no Kiro (mantendo o diretório oculto `.kiro/`). Leia `docs/START-IN-KIRO.md` e cole o prompt inicial no chat Kiro usando **Feature Spec / Requirements-First**, revisando requirements → design → tasks antes da implementação. **Não solicite 'construa tudo' em uma sessão.**
+## Pré-requisitos
 
-## Stack proposta
-- API: Kotlin 2.2+ / JDK 21 / Spring Boot 4.1.x (baseline testada na geração) / Spring MVC / Spring Security / Gradle Kotlin DSL.
-- Dados: PostgreSQL 17+ / Flyway / Spring Data JPA ou JDBC conforme complexidade do agregado; migrations como fonte de verdade.
-- UI: React 19 + TypeScript / Vite / React Router / TanStack Query / React Hook Form + Zod / Tailwind CSS + shadcn/ui (componentes copiados e auditados).
-- Testes: JUnit 5, AssertJ, Testcontainers PostgreSQL e MockMvc para API; Vitest, React Testing Library, MSW e Playwright para UI/E2E.
-- Deploy: Docker Compose local; deploy monolítico e frontend estático sob mesmo domínio via reverse proxy; infraestrutura gerenciada a definir no piloto.
+- JDK 21
+- Docker Desktop (para PostgreSQL local)
+- Node 22 LTS
 
-**Versões:** a base Spring Boot 4.1.1 era estável em 18/10/2026; Kiro deverá validar versões **mutuamente compatíveis** e gravá-las no lockfile, wrapper e version catalog durante a spec de bootstrap. Evitar dependências inventadas ou copiar exemplos de Spring Boot 3 para 4 sem checagem.
+## Início rápido
 
-## Fora do MVP
-Pousadas, mercado de oferta ao turista, split de pagamentos, estornos automatizados, cobrança de assinatura, WhatsApp Cloud API, IA generativa, native mobile, offline transacional, multiidioma, microserviços, event bus e BI avançado.
+### 1. Subir o banco de dados
 
-## Restrições críticas
-Jamais ultrapassar a capacidade da saída; nunca expor dados entre operadores; nunca marcar Pix como confirmado sem registro explícito do operador; não armazenar cartão; não enviar mensagem automática sem consentimento e integração legalmente configurada; nunca confiar apenas na validação do frontend.
+```bash
+docker compose -f infra/compose/docker-compose.yml up -d
+```
 
-## Natureza do pacote
-Este é um **pacote de documentos**, não uma implementação, uma homologação de segurança nem uma comprovação de que há demanda comercial. Regras negociáveis estão identificadas como hipóteses / itens a validar com design partners.
+### 2. Configurar variáveis do backend
+
+Copie o exemplo e ajuste:
+```bash
+cp apps/api/.env.example apps/api/src/main/resources/application-local.yml
+```
+
+### 3. Rodar o backend
+
+```bash
+cd apps/api
+./gradlew bootRun
+```
+
+API disponível em `http://localhost:8080`
+- Health: `GET /actuator/health`
+- Versão: `GET /api/v1/system/version`
+- Contrato: `GET /v3/api-docs`
+- Swagger UI: `GET /swagger-ui.html` (apenas com `SWAGGER_ENABLED=true`)
+
+### 4. Instalar e rodar o frontend
+
+```bash
+cd apps/web
+npm ci
+npm run dev
+```
+
+Frontend disponível em `http://localhost:5173`
+
+### 5. Gerar tipos TypeScript do contrato (backend deve estar rodando)
+
+```bash
+cd apps/web
+npm run generate:types
+```
+
+## Testes
+
+### Backend
+```bash
+cd apps/api
+./gradlew test          # JUnit 5 + Testcontainers
+./gradlew check         # lint (ktlint) + análise estática (detekt)
+```
+
+### Frontend
+```bash
+cd apps/web
+npm run typecheck       # tsc --noEmit
+npm run test:run        # Vitest (sem watch)
+npm run build           # build de produção
+```
+
+## Documentação
+
+- [`docs/START-IN-KIRO.md`](docs/START-IN-KIRO.md) — como usar este projeto no Kiro IDE
+- [`docs/adr/`](docs/adr/) — decisões arquiteturais
+- [`docs/domain/`](docs/domain/) — regras de negócio e estados
+- [`docs/api/`](docs/api/) — contrato de API (seed)
+- [`docs/design/`](docs/design/) — design system e jornadas
+- [`.kiro/specs/`](.kiro/specs/) — feature specs (requirements → design → tasks)
+
+## Roadmap de specs
+
+| # | Spec | Status |
+|---|---|---|
+| 01 | Foundation Bootstrap | 🔄 Em andamento |
+| 02 | Auth & Tenancy | ⏳ Aguardando |
+| 03 | Resources & Departures | ⏳ Aguardando |
+| 04 | Customers & Bookings | ⏳ Aguardando |
+| 05 | Manual Payments | ⏳ Aguardando |
+| 06 | Dashboard & Communications | ⏳ Aguardando |
+| 07 | Pilot Hardening | ⏳ Aguardando |
+| 08 | Future Integrations | ⏳ Aguardando |
